@@ -1,17 +1,20 @@
 #!/usr/bin/python
-#KillingJenny 1.6
+#KillingJenny 1.61
+#A fun killbot for phenny
+#by maddux, 2012
 
 from __future__ import division
 import random
 import os
 import time
+katiereq = False
 armed = False
 globalcount = 150
 killchance = 50.0
 killmod = 23.5
 KILLCHAN = "#kill"
-SERVICENICKS = ["Boxxy"]
-BOTNICK = ""
+SERVICENICK = ["Boxxy"]
+BOTNICK = "jenny"
 OPERNICK = ""
 OPERPASS = ''
 EXCEMPTLIST = ['katie', BOTNICK, SERVICENICK]
@@ -19,16 +22,17 @@ EXCEMPTLIST = ['katie', BOTNICK, SERVICENICK]
 def arm(phenny, input):
 	if not input.admin: return
 	phenny.write(['oper',OPERNICK,OPERPASS])
-	phenny.write(['mode','BOTNICK','+H'])
+	phenny.write(['mode',BOTNICK,'+H'])
 	global armed
 	armed = True
 	phenny.say('Pheer. '+BOTNICK+' haz o:line!')
+	phenny.write(['LUSERS'])
 arm.commands = ['arm']
 arm.priority = 'high'
 
 def disarm(phenny, input):
 	if not input.admin: return
-	phenny.write(['mode','BOTNICK','-o'])
+	phenny.write(['mode',BOTNICK,'-o'])
 	phenny.say('I am disarmed :/')
 	global armed
 	armed = False
@@ -42,6 +46,12 @@ def setmod(phenny, input):
 	killmod = float(input.group(2))
 	phenny.say('kill modifier changed from '+str(killmodo)+' to '+str(killmod))
 setmod.commands = ['setmod']
+
+def getmod(phenny, input):
+	if not input.admin: return
+	global killmod
+	phenny.say('kill modifier is currently set to '+str(killmod))
+getmod.commands = ['getmod']
 
 def astatus(phenny, input):
 	global armed
@@ -60,7 +70,7 @@ def dokill(phenny, input):
 		phenny.say('d\'aww, I would never /kill you, '+input.nick+'!')
 		return
 	random.seed()
-	killchance = killmod/globalcount
+	#killchance = killmod/globalcount
 	phenny.say('Ohai, '+input.nick+'! Let\'s roll the dice of destiny. With a current killing chance of '+str(100*(1-killchance))+'%, you will need a result less than '+str(killchance)+'. Rolling...')
 	time.sleep(1)
 	randn = random.uniform(0.0,1.0)
@@ -68,6 +78,7 @@ def dokill(phenny, input):
 		killquit = True
 		phenny.say('Nope. Your result: '+str(randn)+'. Die well :-)')
 		phenny.write(['kill',input.nick,'You lost the #kill game (Killing chance: '+str(100*(1-killchance))+'%)'])
+		phenny.write(['LUSERS'])
 	else:
 		phenny.say(str(randn)+' rolled!')
 		phenny.say('Yay, you won the #kill game. Welcome to the channel!')
@@ -93,6 +104,7 @@ def dokill(phenny, input):
 			msg = 'Survived joining #kill with a killing chance of '+str(100*(1-killchance))+'%'
 			phenny.write(['SWHOIS', input.nick, msg])
 		phenny.say('Awarded SWHOIS title. Congratulations, '+input.nick)
+		phenny.write(['LUSERS'])
 dokill.event = 'JOIN'
 dokill.rule = r'.*'
 dokill.priority = 'high'
@@ -105,9 +117,13 @@ def getcount(phenny, input):
 	global killchance
 	global globalcount
 	global killmod
+	global katiereq
 	line = input.group().split()
 	globalcount = int(line[3])
 	killchance = killmod/globalcount
+	if katiereq == True: 
+		phenny.write(['privmsg','#kill','Update request from katie:'])
+		katiereq = False
 	msg = 'Current chance of being killed: '+str(100*(1-killchance))+'%'
 	phenny.write(['privmsg','#kill',msg])
 	with open ('killscore.txt','r') as f:
@@ -121,6 +137,8 @@ getcount.rule = r'.*'
 
 def katie_inq(phenny, input):
 	if input.nick != 'katie': return
+	global katiereq
+	katiereq = True
 	phenny.write(['LUSERS'])
 	time.sleep(1)
 	killchance = killmod/globalcount
