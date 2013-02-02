@@ -1,5 +1,5 @@
 #!/usr/bin/python
-#KillingJenny 1.61
+#KillingJenny 1.62
 #A fun killbot for phenny
 #by maddux, 2012
 
@@ -11,13 +11,14 @@ katiereq = False
 armed = False
 globalcount = 150
 killchance = 50.0
-killmod = 23.5
+killmod = 23.0
 KILLCHAN = "#kill"
 SERVICENICK = ["Boxxy"]
 BOTNICK = "jenny"
 OPERNICK = ""
 OPERPASS = ''
-EXCEMPTLIST = ['katie', BOTNICK, SERVICENICK]
+EXCEMPTLIST = ['Anonymous9', 'Boxxy', 'katie', 'Eto', BOTNICK, SERVICENICK]
+
 
 def arm(phenny, input):
 	if not input.admin: return
@@ -48,7 +49,7 @@ def setmod(phenny, input):
 setmod.commands = ['setmod']
 
 def getmod(phenny, input):
-	if not input.admin: return
+	#if not input.admin: return
 	global killmod
 	phenny.say('kill modifier is currently set to '+str(killmod))
 getmod.commands = ['getmod']
@@ -132,6 +133,12 @@ def getcount(phenny, input):
 		hstime = f.readline()
 	msg = 'All-Time Highscore: '+hsval+'%, set by '+hsname+' ('+hstime+')'
 	phenny.write(['privmsg','#kill',msg])
+	if 100*(1-killchance) > float(hsval):
+		msg = 'Danger, danger! A new higscore is possible on next join!'
+		phenny.write(['privmsg','#kill',msg])
+	else:
+		msg = 'Current Highscore is safe.'
+		phenny.write(['privmsg','#kill',msg])
 getcount.event = "266"
 getcount.rule = r'.*'
 
